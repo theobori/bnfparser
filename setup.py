@@ -20,5 +20,6 @@ setup(
     url='https://github.com/theobori/bnf-parser',
     license=_license,
     packages=find_packages(),
-    include_package_data=True
+    include_package_data=True,
+    test_suite="tests",
 )

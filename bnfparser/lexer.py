@@ -140,9 +140,13 @@ class Lexer:
         """Manage an identifie token
         """
 
-        while self.__peek() != ">" or is_allowed(self.__peek()):
+        while (c := self.__peek()) != ">":
             if self.__is_at_end():
                 Error.error(self.__line, "Unterminated identifier")
+                return
+
+            if not is_allowed(c):
+                Error.error(self.__line, "Unallowed character for identifier " + c)
                 return
 
             self.__advance()
@@ -155,12 +159,12 @@ class Lexer:
         """Manage a string token
         """
 
-        while self.__peek() != "\"":
+        while (c := self.__peek()) != "\"":
             if self.__is_at_end():
                 Error.error(self.__line, "Unterminated string")
                 return
 
-            if self.__peek() == "\n":
+            if c == "\n":
                 Error.error(self.__line, "Multiline string is not allowed")
                 return
 
