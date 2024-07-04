@@ -40,10 +40,12 @@
               with pkgs;
               [ python312 ]
               ++ (with pkgs.python312Packages; [
+                setuptools
                 pip
                 venvShellHook
                 build
                 pytest
+                pylint
               ]);
           };
         }

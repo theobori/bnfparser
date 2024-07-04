@@ -28,6 +28,8 @@ class Lexer:
         self.__line = 1
         self.__tokens = []
 
+        Error.had_lexer_error = False
+
     @property
     def source(self) -> str:
         """Return a copy of the source
@@ -49,7 +51,7 @@ class Lexer:
         return self.__tokens
 
     def __is_at_end(self) -> bool:
-        """Returns is the current cursor has reached the end of the file
+        """Returns if the current cursor has reached the end of the file
 
         Returns:
             bool: Has the current index is higher than the source size
@@ -172,6 +174,10 @@ class Lexer:
 
         self.__advance()
 
+        # Preventing double quotes being part of the string
+        while self.__peek() == "\"":
+            self.__advance()
+
         literal = self.__source[self.__start + 1:self.__current - 1]
 
         self.__add_token(TokenKind.STRING, literal)
@@ -184,6 +190,9 @@ class Lexer:
             self.__advance()
 
     def __scan(self):
+        """Scan a token based on the current character
+        """
+
         c = self.__advance()
 
         match c:
@@ -194,6 +203,7 @@ class Lexer:
             case ":": self.__assign()
             case "\r" | "\t" | " ": pass
             case "\n":
+                self.__add_token(TokenKind.EOL)
                 self.__line += 1
             case ";": self.__single_line_comment()
             case "\"":
@@ -201,7 +211,7 @@ class Lexer:
             case _:
                 Error.error(self.__line, "Invalid character " + c)
 
-    def scan_tokens(self) -> List[Token]:
+    def scan(self) -> List[Token]:
         """Scan the source, it means it is going to convert the source into
         token list.
 
@@ -211,7 +221,6 @@ class Lexer:
 
         while not self.__is_at_end():
             self.__start = self.__current
-
             self.__scan()
 
         # Add EOF token

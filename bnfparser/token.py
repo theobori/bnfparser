@@ -5,8 +5,7 @@ from enum import Enum
 from dataclasses import dataclass
 
 class TokenKind(Enum):
-    """
-        Represents every available token kinds
+    """Represents every available token kinds
     """
 
     ASSIGN = "assign"
@@ -15,19 +14,16 @@ class TokenKind(Enum):
     LEFT_PAREN = "left_paren"
     RIGHT_PAREN = "right_paren"
 
-    BEGIN = "begin"
-    END = "end"
-
     IDENTIFIER = "identifier"
     STRING = "string"
     NUMBER = "number"
 
+    EOL = "eol"
     EOF = "eof"
 
 @dataclass
 class Token:
-    """
-        Represents a token
+    """Represents a token
     """
 
     kind: TokenKind
@@ -36,7 +32,7 @@ class Token:
     line: int = -1
 
     def __str__(self) -> str:
-        ret = str(self.kind) + " " + self.lexeme
+        ret = str(self.kind) + " (" + self.lexeme + "')"
 
         if self.literal:
             ret += " " + str(self.literal)

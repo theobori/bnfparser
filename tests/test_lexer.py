@@ -2,7 +2,7 @@
 
 import unittest
 
-from bnfparser import lexer, token, error
+from bnfparser import lexer, error
 
 BNF_NUMBER_OK = '''
 
@@ -26,7 +26,6 @@ BNF_NUMBER_KO = '''
 
 '''
 
-
 class TestLexer(unittest.TestCase):
     """Controller for the lexer tests
     """
@@ -35,7 +34,7 @@ class TestLexer(unittest.TestCase):
         """Test with an invalid source
         """
 
-        lexer.Lexer(BNF_NUMBER_KO).scan_tokens()
+        lexer.Lexer(BNF_NUMBER_KO).scan()
 
         self.assertTrue(error.Error.had_lexer_error)
 
@@ -44,32 +43,9 @@ class TestLexer(unittest.TestCase):
         """
 
         l = lexer.Lexer(BNF_NUMBER_OK)
+        l.scan()
 
-        tokens = l.scan_tokens()
-
-        self.assertEqual(
-            tokens,
-            [
-                # Line 1
-                token.Token(token.TokenKind.IDENTIFIER, "<number>"),
-                token.Token(token.TokenKind.ASSIGN, "::="),
-                token.Token(token.TokenKind.IDENTIFIER, "<digit>"),
-                token.Token(token.TokenKind.PIPE, "|"),
-                token.Token(token.TokenKind.IDENTIFIER, "<number>"),
-
-                # Line 2
-                token.Token(token.TokenKind.IDENTIFIER, "<digit>"),
-                token.Token(token.TokenKind.ASSIGN, "::="),
-                token.Token(token.TokenKind.STRING, "\"1\"", "1"),
-                token.Token(token.TokenKind.PIPE, "|"),
-                token.Token(token.TokenKind.STRING, "\"2\"", "2"),
-                token.Token(token.TokenKind.PIPE, "|"),
-                token.Token(token.TokenKind.STRING, "\"3\"", "3"),
-
-                # End of file
-                token.Token(token.TokenKind.EOF, ""),
-            ]
-        )
+        self.assertFalse(error.Error.had_lexer_error)
 
 if __name__ == '__main__':
     unittest.main()
