@@ -16,7 +16,6 @@ class ExpressionError(Exception):
     """Exception for a `Visitor` implementation
     """
 
-
 class Error:
     """It manages the Lox workflow
     """

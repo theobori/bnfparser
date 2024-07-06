@@ -1,8 +1,10 @@
-"""test lexer module"""
+"""test parser module"""
 
 import unittest
 
-from bnfparser import lexer, parser
+from typing import List
+
+from bnfparser import lexer, parser, expression, verifier
 
 BNF_EXPRESSIONS_OK = (
 '''
@@ -44,6 +46,45 @@ BNF_EXPRESSIONS_OK = (
 ''',
 )
 
+BNF_EXPRESSIONS_KO = (
+'''
+<abc> ::= "hello" | <abc>
+<d> ::= "a"
+<c> ::=
+''',
+'''
+<d> ::= "a"
+<d> ::= "b"
+''',
+'''
+<b> ::= ((((("b"))))
+''',
+'''
+<b> ::= <a>
+<a> ::= <c>
+''',
+)
+
+def parse(s: str) -> List[expression.Expression]:
+    """Lexing then parsing a source
+
+    Args:
+        s (str): The source as a string
+
+    Returns:
+        List[expression.Expression]: Parsed expressions
+    """
+
+    # Lexing
+    l = lexer.Lexer(s)
+    tokens = l.scan()
+
+    # Parsing
+    p = parser.Parser(tokens)
+    expressions = p.parse()
+
+    return expressions
+
 class TestParser(unittest.TestCase):
     """Controller for the parser tests
     """
@@ -52,17 +93,26 @@ class TestParser(unittest.TestCase):
         """Test with valid expressions
         """
 
-        for expression in BNF_EXPRESSIONS_OK:
-            # Lexing
-            l = lexer.Lexer(expression)
-            tokens = l.scan()
+        for e in BNF_EXPRESSIONS_OK:
+            self.assertIsNotNone(parse(e))
 
-            # Parsing
-            p = parser.Parser(tokens)
-            expressions = p.parse()
+    def test_expressions_ko(self):
+        """Test with invalid expressions
+        """
 
-            # Assertion
-            self.assertIsNotNone(expressions)
+        for e in BNF_EXPRESSIONS_KO:
+            expressions = parse(e)
+
+            if expressions is None:
+                continue
+
+            print(e)
+
+            # Verifying semantic
+            v = verifier.Verifier()
+            is_valid = v.verify(expressions)
+
+            self.assertFalse(is_valid)
 
 if __name__ == '__main__':
     unittest.main()

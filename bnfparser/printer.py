@@ -2,7 +2,6 @@
 
 from typing import List, Any, Dict
 
-from .error import VisitorError
 from .expression import Visitor, Terminal, NonTerminal, \
     Variable, Or, Assignment, Group, Expression
 
@@ -11,6 +10,9 @@ INDENT_SIZE = 2
 INDENT_SEQUENCE = INDENT_SIZE * INDENT_SYMBOL
 
 class Printer(Visitor):
+    """`Visitor` implementation that print the tree
+    """
+
     def __init__(self):
         self.__indent_prefix = ""
 
@@ -20,13 +22,13 @@ class Printer(Visitor):
 
         print(self.__indent_prefix, end="")
         print(*args, **kwargs)
-    
+
     def __indent_reset(self):
         """Reset the indentation
         """
 
         self.__indent_prefix = ""
-    
+
     def __indent_increase(self):
         """Indent
         """
@@ -67,7 +69,7 @@ class Printer(Visitor):
 
     def visit_assignment_expression(self, expression: Assignment) -> Any:
         self.__print("VARIABLE", expression.name.lexeme)
-        
+
         self.__indent_increase()
         self.__print_expression(expression.expression)
         self.__indent_decrease()

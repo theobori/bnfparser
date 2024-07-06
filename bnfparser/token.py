@@ -43,3 +43,6 @@ class Token:
         return self.kind == o.kind \
             and self.literal == o.literal \
             and self.lexeme == o.lexeme
+
+    def __hash__(self) -> int:
+        return hash(str(self))
