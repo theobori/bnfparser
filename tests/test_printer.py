@@ -2,7 +2,7 @@
 
 import unittest
 
-from bnfparser import lexer, parser, printer
+from bnfparser import core
 
 BNF_EXPRESSIONS = (
 '''
@@ -28,17 +28,7 @@ class TestPrinter(unittest.TestCase):
         """
 
         for expression in BNF_EXPRESSIONS:
-            # Lexing
-            l = lexer.Lexer(expression)
-            tokens = l.scan()
-
-            # Parsing
-            p = parser.Parser(tokens)
-            expressions = p.parse()
-
-            # Printing
-            pr = printer.Printer()
-            pr.print(expressions)
+            core.parse(expression).print()
 
 if __name__ == '__main__':
     unittest.main()

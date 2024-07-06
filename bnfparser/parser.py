@@ -147,23 +147,19 @@ class Parser:
             Expression: An expression
         """
 
-        left = []
+        # Primary expressions
+        p = []
 
-        while not self.__match(TokenKind.EOL) and self.__peek().kind != TokenKind.RIGHT_PAREN:
-            if self.__peek().kind == TokenKind.PIPE:
-                break
+        while not self.__match(TokenKind.EOL) and \
+            self.__peek().kind != TokenKind.RIGHT_PAREN and \
+            self.__peek().kind != TokenKind.PIPE:
 
-            left.append(self.__primary())
+            p.append(self.__primary())
 
-        size = len(left)
-
-        if size == 0:
+        if not p:
             raise self.__error(self.__peek(), "Expected values")
 
-        if size == 1:
-            return left[0]
-
-        return NonTerminal(left)
+        return p[0] if len(p) == 1 else NonTerminal(p)
 
     def __or(self) -> Expression:
         """Or grammar production
@@ -172,18 +168,12 @@ class Parser:
             Expression: An expression
         """
 
-        expressions = [self.__left_or()]
+        lefts = [self.__left_or()]
 
         while self.__match(TokenKind.PIPE):
-            a = self.__left_or()
-            expressions.append(a)
+            lefts.append(self.__left_or())
 
-        size = len(expressions)
-
-        if size == 1:
-            return expressions[0]
-
-        return Or(expressions)
+        return lefts[0] if len(lefts) == 1 else Or(lefts)
 
     def __expression(self) -> Expression:
         """Top grammar production

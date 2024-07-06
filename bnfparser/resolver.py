@@ -8,6 +8,8 @@ from .token import Token
 from .expression import Visitor, Terminal, NonTerminal, \
     Variable, Or, Assignment, Group, Expression
 
+Environment = Dict[Token, Expression]
+
 class Resolver(Visitor):
     """`Visitor` implementation that verify some semantic stuff post parsing.
     Its main goal is to resolve identifiers / variables.
@@ -63,7 +65,7 @@ class Resolver(Visitor):
         for expression in expressions:
             self.__resolve_expression(expression)
 
-    def resolve(self, expressions: List[Expression]) -> Union[Dict[Token, Expression], None]:
+    def resolve(self, expressions: List[Expression]) -> Union[Environment, None]:
         """verify the tree from left to right
         Args:
             expressions (List[Expression]): Expressions list

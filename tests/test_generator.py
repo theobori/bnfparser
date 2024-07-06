@@ -2,7 +2,7 @@
 
 import unittest
 
-from bnfparser import lexer, parser, resolver, generator
+from bnfparser import core
 
 BNF_EXPRESSIONS = (
 '''
@@ -16,7 +16,19 @@ BNF_EXPRESSIONS = (
 <space> ::= " "
 ''',
 '''
-<abc> ::= (("a" ("b")) | "c") | ("d" | "r")
+<list> ::= "[" <elements> "]"
+<elements> ::= <element> | <element> "," <elements>
+<element> ::= <number> | <string> | <list>
+<number> ::= <digit> | <digit> <number>
+<string> ::= "\"" <characters> "\""
+<characters> ::= <character> | <character> <characters>
+<character> ::= <letter> | <digit> | <symbol>
+<letter> ::= "a" | "b" | "c" | "z" | "A" | "B" | "C" | "Z"
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+<symbol> ::= "!" | "@" | "#" | "$" | "%" | "^" | "&" | "*" | "(" | ")" | "-" | "_" | "=" | "+"
+''',
+'''
+<abc> ::= (("a" ("b")) | "c") | (("d" | "r" "a"))
 ''',
 )
 
@@ -29,21 +41,10 @@ class TestGenerator(unittest.TestCase):
         """
 
         for expression in BNF_EXPRESSIONS:
-            # Lexing
-            l = lexer.Lexer(expression)
-            tokens = l.scan()
+            bnf = core.parse(expression)
+            s = bnf.generate()
 
-            # Parsing
-            p = parser.Parser(tokens)
-            expressions = p.parse()
-
-            # Getting variables environment
-            r = resolver.Resolver()
-            environment = r.resolve(expressions)
-
-            # Generating
-            g = generator.Generator(environment)
-            s = g.generate(expressions)
+            print(s)
 
             self.assertNotEqual(s, "")
 

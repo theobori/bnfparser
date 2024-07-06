@@ -2,9 +2,8 @@
 
 import unittest
 
-from typing import List
 
-from bnfparser import lexer, parser, expression, resolver
+from bnfparser import core
 
 BNF_EXPRESSIONS_OK = (
 '''
@@ -65,54 +64,26 @@ BNF_EXPRESSIONS_KO = (
 ''',
 )
 
-def parse(s: str) -> List[expression.Expression]:
-    """Lexing then parsing a source
-
-    Args:
-        s (str): The source as a string
-
-    Returns:
-        List[expression.Expression]: Parsed expressions
-    """
-
-    # Lexing
-    l = lexer.Lexer(s)
-    tokens = l.scan()
-
-    # Parsing
-    p = parser.Parser(tokens)
-    expressions = p.parse()
-
-    return expressions
-
 class TestParser(unittest.TestCase):
-    """Controller for the parser tests
+    """Controller for the syntax and semantic tests together
     """
 
     def test_expressions_ok(self):
         """Test with valid expressions
         """
 
-        for e in BNF_EXPRESSIONS_OK:
-            self.assertIsNotNone(parse(e))
+        for expression in BNF_EXPRESSIONS_OK:
+            try:
+                core.parse(expression)
+            except AssertionError as e:
+                self.fail(e)
 
     def test_expressions_ko(self):
         """Test with invalid expressions
         """
 
-        for e in BNF_EXPRESSIONS_KO:
-            expressions = parse(e)
-
-            if expressions is None:
-                continue
-
-            print(e)
-
-            # Verifying semantic
-            r = resolver.Resolver()
-            environment = r.resolve(expressions)
-
-            self.assertIsNone(environment)
+        for expression in BNF_EXPRESSIONS_KO:
+            self.assertRaises(AssertionError, core.parse, expression)
 
 if __name__ == '__main__':
     unittest.main()
