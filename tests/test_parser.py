@@ -4,7 +4,7 @@ import unittest
 
 from typing import List
 
-from bnfparser import lexer, parser, expression, verifier
+from bnfparser import lexer, parser, expression, resolver
 
 BNF_EXPRESSIONS_OK = (
 '''
@@ -109,10 +109,10 @@ class TestParser(unittest.TestCase):
             print(e)
 
             # Verifying semantic
-            v = verifier.Verifier()
-            is_valid = v.verify(expressions)
+            r = resolver.Resolver()
+            environment = r.resolve(expressions)
 
-            self.assertFalse(is_valid)
+            self.assertIsNone(environment)
 
 if __name__ == '__main__':
     unittest.main()

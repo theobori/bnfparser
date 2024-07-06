@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import List, Any
 
-from .error import VisitorError, ExpressionError
+from .error import VisitorError, ExpressionError, Error
 from .token import Token
 
 class Expression:
@@ -88,6 +88,22 @@ class Group(Expression):
 class Visitor:
     """Base class for `Visitor` implementations
     """
+
+    @staticmethod
+    def error(token: Token, message: str) -> VisitorError:
+        """Write a token error into stdout and return a `VisitorError` instance
+
+        Args:
+            token (Token): A token
+            message (str): Error message
+
+        Returns:
+            ParserError: Exception child class
+        """
+
+        Error.error_token(token, message)
+
+        return VisitorError()
 
     def visit_terminal_expression(self, expression: Terminal) -> Any:
         """Operate on a `Binary` expression

@@ -15,7 +15,7 @@ BNF_EXPRESSIONS = (
 <verb> ::= ("jumps" | ("runs" | "sleeps")) | "eats"
 ''',
 '''
-<abc> ::= (("a" ("b")) | "c") | ("d" | <r>)
+<abc> ::= (("a" ("b")) | "c") | ("d" | "r")
 ''',
 )
 

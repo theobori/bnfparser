@@ -64,7 +64,8 @@ class Parser:
 
         return ret
 
-    def __error(self, token: Token, message: str) -> ParserError:
+    @staticmethod
+    def __error(token: Token, message: str) -> ParserError:
         """Write a token error into stdout and return a `ParserError` instance
 
         Args:
