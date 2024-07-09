@@ -1,6 +1,6 @@
 """print module"""
 
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Tuple
 
 from .expression import Visitor, Terminal, NonTerminal, \
     Variable, Or, Assignment, Group, Expression
@@ -16,7 +16,7 @@ class Printer(Visitor):
     def __init__(self):
         self.__indent_prefix = ""
 
-    def __print(self, *args: tuple, **kwargs: Dict[str, Any]):
+    def __print(self, *args: Tuple[Any], **kwargs: Dict[str, Any]):
         """`print` wrapper that use a managed indentation
         """
 
@@ -44,7 +44,7 @@ class Printer(Visitor):
     def visit_terminal_expression(self, expression: Terminal) -> Any:
         self.__print("TERMINAL \"", expression.value, "\"", sep="")
 
-    def visit_right_expression(self, expression: NonTerminal) -> Any:
+    def visit_nonterminal_expression(self, expression: NonTerminal) -> Any:
         self.__print("NONTERMINAL")
 
         self.__indent_increase()
@@ -98,6 +98,12 @@ class Printer(Visitor):
             expressions (List[Expression]): Expressions list
         """
 
+        self.__indent_reset()
+
+        self.__print("ABSTRACT SYNTAX TREE")
+        self.__indent_increase()
+
         for expression in expressions:
-            self.__indent_reset()
             self.__print_expression(expression)
+
+        self.__indent_decrease()

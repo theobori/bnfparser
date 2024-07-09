@@ -19,6 +19,7 @@ class TokenKind(Enum):
     NUMBER = "number"
 
     EOL = "eol"
+    EOL_VAR = "eol_var"
     EOF = "eof"
 
 @dataclass

@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import List, Any
 
-from .error import VisitorError, ExpressionError, Error
+from .error import VisitorError, ExpressionError
 from .token import Token
 
 class Expression:
@@ -41,7 +41,7 @@ class NonTerminal(Expression):
     expressions: List[Expression]
 
     def accept(self, visitor: "Visitor") -> Any:
-        return visitor.visit_right_expression(self)
+        return visitor.visit_nonterminal_expression(self)
 
 @dataclass
 class Variable(Expression):
@@ -55,7 +55,7 @@ class Variable(Expression):
 
 @dataclass
 class Or(Expression):
-    """Represents a Or expression
+    """Represents a Or expression. It is not binary by choice.
     """
 
     values: List[Expression]
@@ -89,24 +89,8 @@ class Visitor:
     """Base class for `Visitor` implementations
     """
 
-    @staticmethod
-    def error(token: Token, message: str) -> VisitorError:
-        """Write a token error into stdout and return a `VisitorError` instance
-
-        Args:
-            token (Token): A token
-            message (str): Error message
-
-        Returns:
-            ParserError: Exception child class
-        """
-
-        Error.error_token(token, message)
-
-        return VisitorError()
-
     def visit_terminal_expression(self, expression: Terminal) -> Any:
-        """Operate on a `Binary` expression
+        """Operate on a `Terminal` expression
 
         Returns:
             Any: Any value
@@ -114,8 +98,8 @@ class Visitor:
 
         raise VisitorError("Not implemented")
 
-    def visit_right_expression(self, expression: NonTerminal) -> Any:
-        """Operate on a `Binary` expression
+    def visit_nonterminal_expression(self, expression: NonTerminal) -> Any:
+        """Operate on a `NonTerminal` expression
 
         Returns:
             Any: Any value

@@ -2,6 +2,7 @@
   buildPythonPackage,
   setuptools,
   wheel,
+  graphviz,
   pytestCheckHook,
 }:
 buildPythonPackage {
@@ -16,4 +17,6 @@ buildPythonPackage {
   ];
 
   nativeCheckInputs = [ pytestCheckHook ];
+
+  propagatedBuildInputs = [ graphviz ];
 }

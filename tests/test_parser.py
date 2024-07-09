@@ -2,8 +2,7 @@
 
 import unittest
 
-
-from bnfparser import core
+from bnfparser import core, error
 
 BNF_EXPRESSIONS_OK = (
 '''
@@ -82,8 +81,10 @@ class TestParser(unittest.TestCase):
         """Test with invalid expressions
         """
 
+        errors = (error.ParserError, error.VisitorError, error.LexerError)
+
         for expression in BNF_EXPRESSIONS_KO:
-            self.assertRaises(AssertionError, core.parse, expression)
+            self.assertRaises(errors, core.parse, expression)
 
 if __name__ == '__main__':
     unittest.main()

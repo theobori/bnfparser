@@ -30,22 +30,22 @@ class TestLexer(unittest.TestCase):
     """Controller for the lexer tests
     """
 
-    def test_bnf_number_ko(self):
-        """Test with an invalid source
-        """
-
-        lexer.Lexer(BNF_NUMBER_KO).scan()
-
-        self.assertTrue(error.Error.had_lexer_error)
-
     def test_bnf_number_ok(self):
-        """Test with a valid source
+        """Test with an valid source
         """
 
-        l = lexer.Lexer(BNF_NUMBER_OK)
-        l.scan()
+        try:
+            lexer.Lexer(BNF_NUMBER_OK).scan()
+        except error.LexerError:
+            self.fail()
 
-        self.assertFalse(error.Error.had_lexer_error)
+    def test_bnf_number_ko(self):
+        """Test with a invalid source
+        """
+
+        l = lexer.Lexer(BNF_NUMBER_KO)
+
+        self.assertRaises(error.LexerError, l.scan)
 
 if __name__ == '__main__':
     unittest.main()

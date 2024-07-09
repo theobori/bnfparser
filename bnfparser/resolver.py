@@ -1,7 +1,6 @@
 """resolver module"""
 
-from typing import List, Any, Dict, Union
-from sys import stderr
+from typing import List, Any, Dict
 
 from .error import VisitorError
 from .token import Token
@@ -22,7 +21,7 @@ class Resolver(Visitor):
     def visit_terminal_expression(self, expression: Terminal) -> Any:
         return
 
-    def visit_right_expression(self, expression: NonTerminal) -> Any:
+    def visit_nonterminal_expression(self, expression: NonTerminal) -> Any:
         for e in expression.expressions:
             self.__resolve_expression(e)
 
@@ -31,7 +30,7 @@ class Resolver(Visitor):
             return
 
         if not (name := expression.name) in self.__identifiers:
-            raise self.error(name, "Undefined variable")
+            raise VisitorError.error_token(name, "Undefined variable")
 
     def visit_or_expression(self, expression: Or) -> Any:
         for value in expression.values:
@@ -41,7 +40,7 @@ class Resolver(Visitor):
         name = expression.name
 
         if self.__first_visit and name in self.__identifiers:
-            raise self.error(name, "Already defined")
+            raise VisitorError.error_token(name, "Already defined")
 
         self.__identifiers[name] = expression.expression
 
@@ -65,20 +64,16 @@ class Resolver(Visitor):
         for expression in expressions:
             self.__resolve_expression(expression)
 
-    def resolve(self, expressions: List[Expression]) -> Union[Environment, None]:
+    def resolve(self, expressions: List[Expression]) -> Environment:
         """verify the tree from left to right
         Args:
             expressions (List[Expression]): Expressions list
         """
 
-        try:
-            # Check for already defined identifiers then store variables values
-            self.__resolve(expressions, True)
+        # Check for already defined identifiers then store variables values
+        self.__resolve(expressions, True)
 
-            # Check for undefined identifiers within expressions
-            self.__resolve(expressions, False)
-        except VisitorError as e:
-            print(e, file=stderr)
-            return None
+        # Check for undefined identifiers within expressions
+        self.__resolve(expressions, False)
 
         return self.__identifiers

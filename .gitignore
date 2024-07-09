@@ -164,3 +164,5 @@ cython_debug/
 main.py
 .direnv
 result
+ideas
+/built_graphs

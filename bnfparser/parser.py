@@ -1,11 +1,9 @@
 """parser module"""
 
-from sys import stderr
-
-from typing import List, Union
+from typing import List
 
 from .token import Token, TokenKind
-from .error import Error, ParserError
+from .error import ParserError
 from .expression import Expression, Terminal, Variable, Or, Assignment, Group, NonTerminal
 
 class Parser:
@@ -25,7 +23,7 @@ class Parser:
 
         return self.__peek().kind == TokenKind.EOF
 
-    def __peek(self, index: Union[list ,None]=None) -> Token:
+    def __peek(self, index: int | None=None) -> Token:
         """
             get the current token
         """
@@ -64,22 +62,6 @@ class Parser:
 
         return ret
 
-    @staticmethod
-    def __error(token: Token, message: str) -> ParserError:
-        """Write a token error into stdout and return a `ParserError` instance
-
-        Args:
-            token (Token): A token
-            message (str): Error message
-
-        Returns:
-            ParserError: Exception child class
-        """
-
-        Error.error_token(token, message)
-
-        return ParserError()
-
     def __consume(self, kind: TokenKind, message: str) -> Token:
         """Consume the current token only if it matches the token kind,
             otherwise, it becomes an error
@@ -89,7 +71,7 @@ class Parser:
             message (str): Message if an error happend
 
         Raises:
-            self.__error
+            ParserError
 
         Returns:
             Token: The current token
@@ -98,7 +80,7 @@ class Parser:
         if self.__check(kind):
             return self.__advance()
 
-        raise self.__error(self.__peek(), message)
+        raise ParserError.error_token(self.__peek(), message)
 
     def __advance(self) -> Token:
         """Move the cursor on the next token and return the previous one
@@ -116,13 +98,13 @@ class Parser:
         """Last grammar production
 
         Raises:
-            self.__error: Unknown character/string
+            ParserError: Unknown character/string
 
         Returns:
             Expression: An expression representing an operator
         """
 
-        if self.__match(TokenKind.STRING):
+        if self.__match(TokenKind.STRING, TokenKind.EOL_VAR):
             return Terminal(self.__peek_previous().literal)
 
         if self.__match(TokenKind.LEFT_PAREN):
@@ -135,13 +117,13 @@ class Parser:
         if self.__match(TokenKind.IDENTIFIER):
             return Variable(self.__peek_previous())
 
-        raise self.__error(self.__peek_previous(), "Expect expression")
+        raise ParserError.error_token(self.__peek_previous(), "Expect expression")
 
     def __left_or(self) -> Expression:
         """Or left side
 
         Raises:
-            self.__error: If no expression found
+            ParserError: If no expression found
 
         Returns:
             Expression: An expression
@@ -157,7 +139,7 @@ class Parser:
             p.append(self.__primary())
 
         if not p:
-            raise self.__error(self.__peek(), "Expected values")
+            raise ParserError.error_token(self.__peek(), "Expected values")
 
         return p[0] if len(p) == 1 else NonTerminal(p)
 
@@ -188,42 +170,38 @@ class Parser:
         """Assignment grammar production
 
         Raises:
-            self.__error: Needs an identifier
-            self.__error: Needs the '::=' symbol
+            ParserError: Needs an identifier
+            ParserError: Needs the '::=' symbol
 
         Returns:
             Expression: An Assignment expression
         """
 
         if not self.__match(TokenKind.IDENTIFIER):
-            raise self.__error(self.__peek(), "Expected an identifier")
+            raise ParserError.error_token(self.__peek(), "Expected an identifier")
 
         name = self.__peek_previous()
 
         if not self.__match(TokenKind.ASSIGN):
-            raise self.__error(self.__peek(), "Expected '::='")
+            raise ParserError.error_token(self.__peek(), "Expected '::='")
 
         expression = self.__expression()
 
         return Assignment(name, expression)
 
-    def parse(self) -> Union[List[Expression],  None]:
+    def parse(self) -> List[Expression]:
         """Returns a list of expressions representing the AST
 
         Returns:
-            Union[List[Expression],  None]: Expressions or None
+            List[Expression] | None: Expressions or None
         """
 
         expressions = []
 
-        try:
-            while not self.__is_at_end():
-                if self.__match(TokenKind.EOL):
-                    continue
+        while not self.__is_at_end():
+            if self.__match(TokenKind.EOL):
+                continue
 
-                expressions.append(self.__assignment())
-        except ParserError as e:
-            print(e, file=stderr)
-            return None
+            expressions.append(self.__assignment())
 
         return expressions

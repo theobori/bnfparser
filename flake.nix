@@ -26,6 +26,7 @@
               setuptools
               wheel
               pytestCheckHook
+              graphviz
               ;
           };
         }
@@ -46,6 +47,7 @@
                 build
                 pytest
                 pylint
+                graphviz
               ]);
           };
         }

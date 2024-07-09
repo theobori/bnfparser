@@ -8,10 +8,13 @@ with open('README.md', encoding="utf-8") as f:
 with open('LICENSE', encoding="utf-8") as f:
     _license = f.read()
 
+with open('requirements.txt', encoding="utf-8") as f:
+    required = f.read().splitlines()
+
 setup(
     name='bnfparser',
     version='0.1.0',
-    install_requires=[],
+    install_requires=required,
     description='BNF parser',
     long_description=readme,
     long_description_content_type='text/markdown',

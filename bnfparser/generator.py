@@ -2,54 +2,57 @@
 
 import random
 
-from typing import List, Any, Dict
-from sys import stderr
+from typing import Any
+from collections import deque
 
 from .error import VisitorError
-from .token import Token, TokenKind
 from .expression import Visitor, Terminal, NonTerminal, \
     Variable, Or, Assignment, Group, Expression
+from .resolver import Environment
 
 class Generator(Visitor):
     """`Visitor` implementation that produce a random string based
-    on a BNF grammer
+    on a BNF grammar
     """
 
-    def __init__(self, environment: Dict[Token, Expression]):
+    def __init__(self, environment: Environment):
         self.__destination = ""
         self.__environment = environment
+        self.__expressions_stack = deque()
 
     def __add(self, s: str):
         self.__destination += s
 
     def __reset(self):
         self.__destination = ""
+        self.__expressions_stack.clear()
 
     def visit_terminal_expression(self, expression: Terminal) -> Any:
         self.__add(expression.value)
 
-    def visit_right_expression(self, expression: NonTerminal) -> Any:
-        for e in expression.expressions:
-            self.__generate_expression(e)
+    def visit_nonterminal_expression(self, expression: NonTerminal) -> Any:
+        for e in reversed(expression.expressions):
+            self.__expressions_stack.append(e)
 
     def visit_variable_expression(self, expression: Variable) -> Any:
         if not (name := expression.name) in self.__environment:
-            self.error(name, "Missing " + name.lexeme + " in the environment")
+            raise VisitorError.error_token(
+                name,
+                "Missing " + name.lexeme + " in the environment"
+            )
 
         value = self.__environment[name]
-
-        self.__generate_expression(value)
+        self.__expressions_stack.append(value)
 
     def visit_or_expression(self, expression: Or) -> Any:
         value = random.choice(expression.values)
-
-        self.__generate_expression(value)
+        self.__expressions_stack.append(value)
 
     def visit_assignment_expression(self, expression: Assignment) -> Any:
-        self.__generate_expression(expression.expression)
+        self.__expressions_stack.append(expression.expression)
 
     def visit_group_statement(self, expression: Group) -> Any:
-        self.__generate_expression(expression.expression)
+        self.__expressions_stack.append(expression.expression)
 
     def __generate_expression(self, expression: Expression):
         """Verify the given `expression` with the right `Visitor` method
@@ -60,15 +63,11 @@ class Generator(Visitor):
 
         expression.accept(self)
 
-    def generate(self, expressions: List[Expression], start: str="") -> str:
-        """Generate a random string based on the give `expressions`
+    def generate(self, start: Expression) -> str:
+        """Generate a random string based on the given `expressions`
 
         Args:
-            expressions (List[Expression]): Representing the tree
-            start (str, optional): Start identifier value. Defaults to "".
-
-        Raises:
-            VisitorError: Can raise an error
+            start (Expression): A start expression
 
         Returns:
             str: A random string
@@ -76,24 +75,13 @@ class Generator(Visitor):
 
         self.__reset()
 
-        if len(expressions) == 0:
-            return ""
-
-        # Looking for a start BNF expression
-        if start == "":
-            expression_start = expressions[0]
-        else:
-            token_start = Token(TokenKind.IDENTIFIER, start)
-
-            if not token_start in self.__environment:
-                raise VisitorError(f"Token {token_start} is not in this environment")
-
-            expression_start = self.__environment[token_start]
+        # Init stack
+        self.__expressions_stack.append(start)
 
         try:
-            self.__generate_expression(expression_start)
-        except VisitorError as e:
-            print(e, file=stderr)
+            while self.__expressions_stack:
+                self.__generate_expression(self.__expressions_stack.pop())
+        except VisitorError:
             return ""
 
         return self.__destination

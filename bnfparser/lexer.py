@@ -2,19 +2,23 @@
 
 from typing import List, Any
 
+from .error import LexerError
 from .token import Token, TokenKind
-from .error import Error
 
-def is_allowed(char: str) -> bool:
+RESERVED_KEYWORDS = {
+    "<EOL>": (TokenKind.EOL_VAR, "\n")
+}
+
+def is_identifier_char(char: str) -> bool:
     """Return if the char is allowed for an identifier
 
     Args:
-        char (str): The character
+        char (str): A character
 
     Returns:
         bool: Is the character allowed
     """
-    return char.isalpha() or char in "-_"
+    return char.isalnum() or char in "-_"
 
 class Lexer:
     """Lexing the source string, it parses into tokens
@@ -27,8 +31,6 @@ class Lexer:
         self.__start = self.__current
         self.__line = 1
         self.__tokens = []
-
-        Error.had_lexer_error = False
 
     @property
     def source(self) -> str:
@@ -125,7 +127,19 @@ class Lexer:
 
         return True
 
-    def __assign(self) -> TokenKind:
+    def __error(self, message: str) -> LexerError:
+        """Return a custom exception for the lexer errors
+
+        Args:
+            message (str): An error message
+
+        Returns:
+            LexerError: A LexerError instance
+        """
+
+        return LexerError.error(self.__line, message)
+
+    def __assign(self):
         """Manage an assign token
         """
 
@@ -133,49 +147,50 @@ class Lexer:
             and self.__match("=")
 
         if not is_matched:
-            Error.error(self.__line, "Invalid assigment characters sequence")
-            return
+            raise self.__error("Invalid assigment characters sequence")
 
         self.__add_token(TokenKind.ASSIGN)
 
-    def __identifier(self) -> TokenKind:
+    def __identifier(self):
         """Manage an identifie token
         """
 
         while (c := self.__peek()) != ">":
             if self.__is_at_end():
-                Error.error(self.__line, "Unterminated identifier")
-                return
+                raise self.__error("Unterminated identifier")
 
-            if not is_allowed(c):
-                Error.error(self.__line, "Unallowed character for identifier " + c)
-                return
+            if not is_identifier_char(c):
+                raise self.__error("Unallowed character for identifier " + c)
 
             self.__advance()
 
         self.__advance()
 
+        keyword = self.__source[self.__start:self.__current]
+
+        if keyword in RESERVED_KEYWORDS:
+            self.__add_token(*RESERVED_KEYWORDS[keyword])
+            return
+
         self.__add_token(TokenKind.IDENTIFIER)
 
-    def __string(self):
+    def __string(self, start_char: str):
         """Manage a string token
         """
 
-        while (c := self.__peek()) != "\"":
+        while (c := self.__peek()) != start_char:
             if self.__is_at_end():
-                Error.error(self.__line, "Unterminated string")
-                return
+                raise self.__error("Unterminated string")
 
             if c == "\n":
-                Error.error(self.__line, "Multiline string is not allowed")
-                return
+                raise self.__error("Multiline string is not allowed")
 
             self.__advance()
 
         self.__advance()
 
         # Preventing double quotes being part of the string
-        while self.__peek() == "\"":
+        while self.__peek() == start_char:
             self.__advance()
 
         literal = self.__source[self.__start + 1:self.__current - 1]
@@ -193,9 +208,7 @@ class Lexer:
         """Scan a token based on the current character
         """
 
-        c = self.__advance()
-
-        match c:
+        match (c := self.__advance()):
             case "|": self.__add_token(TokenKind.PIPE)
             case "(": self.__add_token(TokenKind.LEFT_PAREN)
             case ")": self.__add_token(TokenKind.RIGHT_PAREN)
@@ -206,10 +219,10 @@ class Lexer:
                 self.__add_token(TokenKind.EOL)
                 self.__line += 1
             case ";": self.__single_line_comment()
-            case "\"":
-                self.__string()
+            case "\"" | "'":
+                self.__string(c)
             case _:
-                Error.error(self.__line, "Invalid character " + c)
+                raise self.__error("Invalid character " + c)
 
     def scan(self) -> List[Token]:
         """Scan the source, it means it is going to convert the source into
