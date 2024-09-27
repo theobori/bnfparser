@@ -31,6 +31,11 @@ jobs:
     - name: Build a binary wheel and a source tarball
       run: python3 -m build
 
+    - uses: actions/checkout@v4
+    - uses: cachix/install-nix-action@v27
+    - run: nix build
+    - run: nix flake check
+
     - name: Store the distribution packages
       if: github.event_name == 'push'
       uses: actions/upload-artifact@v3

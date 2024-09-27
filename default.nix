@@ -16,7 +16,9 @@ buildPythonPackage {
     wheel
   ];
 
+  propagatedBuildInputs = [ graphviz ];
+
   nativeCheckInputs = [ pytestCheckHook ];
 
-  propagatedBuildInputs = [ graphviz ];
+  pythonImportsCheck = [ "bnfparser" ];
 }

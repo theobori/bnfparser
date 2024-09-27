@@ -2,6 +2,8 @@
 
 [![lint](https://github.com/theobori/bnfparser/actions/workflows/lint.yml/badge.svg)](https://github.com/theobori/bnfparser/actions/workflows/lint.yml) [![build](https://github.com/theobori/bnfparser/actions/workflows/build.yml/badge.svg)](https://github.com/theobori/bnfparser/actions/workflows/build.yml)
 
+[![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org)
+
 This Python module parses BNF grammar rules and produces an AST representing the BNF syntax. It can also generate random expressions from given BNF grammar rules and parse input sequences matching the BNF rules. It handles infinite recursion grammar rules within the needed `Visitor` implementations.
 
 ## 🍬 Syntactic sugar
